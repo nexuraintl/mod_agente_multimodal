@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 
 # Cargar variables de entorno desde env_vars/.env
@@ -25,6 +26,9 @@ app.add_middleware(
 # Registrar el router
 app.include_router(agent_router)
 
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # Lee el puerto de la variable de entorno o usa 8080 por defecto
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
