@@ -22,6 +22,7 @@ __pycache__/
 env/
 venv/
 ENV/
+services/env/
 
 # Logs
 logs/
