@@ -1,4 +1,6 @@
 # models/__init__.py
-from .webhook_models import WebhookPayload, WebhookResponse
+"""Models package for AI Diagnosis Service."""
 
-__all__ = ["WebhookPayload", "WebhookResponse"]
+from .diagnosis_models import DiagnosisRequest, DiagnosisResponse, ImageData
+
+__all__ = ["DiagnosisRequest", "DiagnosisResponse", "ImageData"]
