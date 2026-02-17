@@ -32,5 +32,6 @@ app.include_router(diagnosis_router)
 if __name__ == "__main__":
     import uvicorn
     # Read port from environment variable or use 8085 by default
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 8085))
     uvicorn.run(app, host="0.0.0.0", port=port)
+    # cambio de puertopor pausa en el servicio
