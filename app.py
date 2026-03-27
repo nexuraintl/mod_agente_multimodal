@@ -9,8 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from controllers.diagnosis_controller import diagnosis_router
 
 app = FastAPI(
-    title="AI Diagnosis Service",
-    description="Pure AI diagnosis service for design tickets. Consumed by agents_mod.",
+    title="Nexura AI Multimodal Service",
+    description="PServicio especializado en diagnóstico visual y diseño de bloques (bloqueEditor, bloqueLayout, bloqueDynamic).",
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -32,6 +32,6 @@ app.include_router(diagnosis_router)
 if __name__ == "__main__":
     import uvicorn
     # Read port from environment variable or use 8085 by default
-    port = int(os.environ.get("PORT", 8085))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)
     # cambio de puertopor pausa en el servicio
