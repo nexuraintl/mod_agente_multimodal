@@ -96,10 +96,11 @@ class DiagnosisService:
         
         try:
             # 1. Validate input
-            if not request.ticket_text or not request.ticket_text.strip():
+            if not request.ticket_text.strip():
                 return DiagnosisResponse(
                     status="error",
-                    error="ticket_text is required and cannot be empty",
+                    error="Texto vacío",
+                    diagnosis= "",
                     processing_time_ms=(time.time() - start_time) * 1000
                 )
 
@@ -108,63 +109,80 @@ class DiagnosisService:
             logger.info(f"   Images: {len(request.images) if request.images else 0}")
 
             # 2. Decode images if present
-            images = []
+            decoded_images = []
             if request.images:
-                images = self._decode_images(request.images)
-                logger.info(f"📸 Decoded {len(images)} images for visual analysis")
+                for img in request.images:
+                    try:
+                        decoded_images.append({
+                            "mime_type": img.mime_type,
+                            "data": base64.b64decode(img.data)
+                        })
+                    except Exception as e:
+                        logger.warning(f"Error decodificando imagen: {e}")
+                
+                
 
             # 3. Get RAG tool config if enabled
-            tool_config = None
-            if request.use_rag:
-                tool_config = self._get_rag_tool_config()
+            tool_config = self._get_rag_tool_config() if request.use_rag else None
 
             # 4. Call AI for diagnosis
             logger.info("🤖 Generating diagnosis with AI...")
             response_data = self.agent_service.diagnose_ticket(
                 ticket_text=request.ticket_text,
                 tool_config=tool_config,
-                images=images
+                images=decoded_images
             )
 
             # 5. Process response
-            if isinstance(response_data, str):
+            final_diagnosis_text = ""
+            detected_blocks =[]
+            type_id = 14 #Default: Requerimiento
+            if isinstance(response_data, dict):
                 # Raw string response
-                type_id = None
-                diagnosis = response_data
-            else:
-                # Dict response with type_id and diagnostico
-                type_id = response_data.get("type_id")
-                diagnosis = response_data.get("diagnostico")
+                type_id = response_data.get("type_id", 14)
+                raw_diag = response_data.get("diagnostico", "")
 
+                # Lógica de extracción de bloques JSON
+                if isinstance(raw_diag, str) and (raw_diag.strip().startswith("[") or raw_diag.strip().startswith("{")):
+                    try:
+                        # Intentamos extraer bloques si la IA mandó JSON
+                        parsed = json.loads(raw_diag)
+                        if isinstance(parsed, list):
+                            detected_blocks = parsed
+                            final_diagnosis_text = f"Se detectaron {len(detected_blocks)} bloques técnicos para procesar."
+                        else:
+                            detected_blocks = [parsed]
+                            final_diagnosis_text = "Se detectó un bloque técnico."
+                    except:
+                        final_diagnosis_text = raw_diag
+                else:
+                    final_diagnosis_text = raw_diag
+            else:
+                final_diagnosis_text = str(response_data)
+
+            processing_time = (time.time() - start_time) * 1000
+            
+
+        
             # 6. Validate diagnosis
-            if not diagnosis:
+            if not final_diagnosis_text:
                 return DiagnosisResponse(
                     status="error",
                     error="AI returned empty diagnosis",
                     processing_time_ms=(time.time() - start_time) * 1000
                 )
 
-            # 7. Try to parse diagnosis if it's a JSON string (for visual analysis blocks)
-            if isinstance(diagnosis, str):
-                try:
-                    # Check if it's a JSON array (visual analysis result)
-                    cleaned = diagnosis.strip()
-                    if cleaned.startswith("["):
-                        diagnosis = json.loads(cleaned)
-                        logger.info(f"📦 Parsed {len(diagnosis)} visual blocks from diagnosis")
-                except json.JSONDecodeError:
-                    # Keep as string (HTML/code response)
-                    pass
-
             processing_time = (time.time() - start_time) * 1000
             logger.info(f"✅ Diagnosis completed in {processing_time:.2f}ms. TypeID: {type_id}")
-
+            
             return DiagnosisResponse(
                 status="ok",
                 type_id=type_id,
-                diagnosis=diagnosis,
+                diagnosis=final_diagnosis_text, # Texto para la nota de Znuny
+                blocks=detected_blocks,        # JSON para el sistema de diseño
                 processing_time_ms=processing_time
             )
+
 
         except Exception as e:
             logger.error(f"❌ Diagnosis failed: {e}", exc_info=True)

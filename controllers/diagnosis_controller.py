@@ -10,46 +10,35 @@ from services.diagnosis_service import diagnosis_service
 
 logger = logging.getLogger(__name__)
 
-diagnosis_router = APIRouter(tags=["diagnosis"])
+diagnosis_router = APIRouter(tags=["AI Multimodal Diagnosis"])
 
 
 @diagnosis_router.post("/diagnose", response_model=DiagnosisResponse)
-async def diagnose(request: DiagnosisRequest) -> DiagnosisResponse:
+async def diagnose(request: DiagnosisRequest):
     """
-    Generate AI diagnosis for a design ticket.
+    Genera un diagnóstico de IA para tickets de diseño o errores visuales.
     
-    This endpoint receives ticket data (text and optional images) and returns
-    an AI-generated diagnosis. Supports visual analysis of images with color
-    annotations for block identification.
-    
-    **Consumed by:** agents_mod microservice
-    
-    **Type Classifications:**
-    - 10: Incident (bug/error in existing UI)
-    - 14: Request (modification to existing component)
-    - 19: Requirement (new component/functionality)
-    
-    **Visual Analysis:**
-    When images with color borders are provided, the AI identifies blocks:
-    - Yellow (#FFF200) → bloqueEditor
-    - Blue (#0023F5) → bloqueLayout  
-    - Cyan (#00FFFF) → bloqueDynamic
+    Identificación de bloques por colores:
+    - Amarillo (#FFF200) -> bloqueEditor
+    - Azul (#0023F5) -> bloqueLayout
+    - Cian (#00FFFF) -> bloqueDynamic
     """
-    logger.info(f"[/diagnose] Received request for ticket: {request.ticket_id or 'N/A'}")
+    ticket_log = f"Ticket: {request.ticket_id}" if request.ticket_id else "Contenido Directo"
+    logger.info(f"[MULTIMODAL] Iniciando análisis visual para {ticket_log}")
     
     try:
         result = diagnosis_service.diagnose(request)
         
         if result.status == "error":
-            logger.error(f"[/diagnose] Diagnosis failed: {result.error}")
+            logger.error(f"❌ Error en diagnóstico visual: {result.error}")
         else:
-            logger.info(f"[/diagnose] Diagnosis completed. TypeID: {result.type_id}")
+            logger.info(f"✅ Análisis completado. Tipo sugerido: {result.type_id}")
         
         return result
         
     except Exception as e:
-        logger.error(f"[/diagnose] Unexpected error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"💥 Error inesperado en el controlador multimodal: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error interno en Multimodal Service: {str(e)}")
 
 
 @diagnosis_router.get("/health")
@@ -61,8 +50,9 @@ async def health():
     """
     return {
         "status": "healthy",
-        "service": "ai-diagnosis-service",
-        "version": "2.0.0"
+        "service": "ai-multimodal-service",
+        "version": "2.0.0",
+        "capabilities": ["vision", "block_detection", "ui_ux_analysis"]
     }
 
 

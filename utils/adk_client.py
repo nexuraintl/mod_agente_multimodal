@@ -152,12 +152,13 @@ La cantidad de items en 'items' corresponde a las columnas visuales. size.lg/md/
                     tools.append(tool_config)
 
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.0-flash",
                 contents=contents,
                 config=types.GenerateContentConfig( 
                     thinking_config=types.ThinkingConfig(thinking_budget=0),
-                    temperature=0.2,
-                    tools=tools
+                    temperature=0.1,
+                    tools=tools,
+                    response_mime_type="application/json"
                 )
             )
             print("🔍 Respuesta cruda:", response)
