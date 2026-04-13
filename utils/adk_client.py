@@ -1,6 +1,9 @@
 from google import genai
 from google.genai import types
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ADKClient:
     def __init__(self):
@@ -144,24 +147,36 @@ La cantidad de items en 'items' corresponde a las columnas visuales. size.lg/md/
             # ----------------------------------------------------------------------
             
             # Configuración de herramientas
-            tools = []
+            # Inicializamos tools como None por defecto
+            actual_tools = None
+            
             if tool_config:
-                if isinstance(tool_config, list):
-                    tools.extend(tool_config)
-                else:
-                    tools.append(tool_config)
+                # Si tool_config ya es una lista, la usamos
+                if isinstance(tool_config, list) and len(tool_config) > 0:
+                    actual_tools = tool_config
+                # Si es un solo objeto de herramienta
+                elif not isinstance(tool_config, list):
+                    actual_tools = [tool_config]
+
+            # Si por alguna razón la lista quedó vacía, forzamos None
+            if actual_tools == []:
+                actual_tools = None
 
             response = self.client.models.generate_content(
                 model="gemini-2.0-flash",
                 contents=contents,
                 config=types.GenerateContentConfig( 
-                    thinking_config=types.ThinkingConfig(thinking_budget=0),
+                    # Eliminamos thinking_config si el presupuesto es 0 para evitar ruido
                     temperature=0.1,
-                    tools=tools,
+                    tools=actual_tools, # Usamos la variable validada
                     response_mime_type="application/json"
                 )
             )
-            print("🔍 Respuesta cruda:", response)
+            
+            if not response or not response.text:
+                logger.error("La respuesta de la IA está vacía")
+                return ""
+
             return response.text
                 
 
