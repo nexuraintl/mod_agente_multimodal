@@ -123,7 +123,8 @@ class DiagnosisService:
                 
 
             # 3. Get RAG tool config if enabled
-            tool_config = self._get_rag_tool_config() if request.use_rag else None
+            #tool_config = self._get_rag_tool_config() if request.use_rag else None
+            tool_config = None
 
             # 4. Call AI for diagnosis
             logger.info("🤖 Generating diagnosis with AI...")
