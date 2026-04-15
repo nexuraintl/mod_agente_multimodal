@@ -32,12 +32,6 @@ class DiagnosisService:
             self._agent_service = AgentService()
         return self._agent_service
 
-    @property
-    def kb_service(self) -> KnowledgeBaseService:
-        """Lazy initialization of KnowledgeBaseService."""
-        if self._kb_service is None:
-            self._kb_service = KnowledgeBaseService()
-        return self._kb_service
 
     def _decode_images(self, images: list) -> list:
         """
@@ -62,25 +56,6 @@ class DiagnosisService:
                 logger.warning(f"Failed to decode image {img.filename}: {e}")
         return decoded
 
-    def _get_rag_tool_config(self):
-        """
-        Get RAG tool configuration for Knowledge Base search.
-        
-        Returns:
-            Tool config or None if RAG fails
-        """
-        try:
-            store_name = self.kb_service.get_or_create_store(display_name="Znuny_Tickets_KB")
-            if store_name:
-                tool_config = self.kb_service.get_tool_config(store_name)
-                logger.info(f"✅ RAG configured with Store: {store_name}")
-                return tool_config
-            else:
-                logger.warning("⚠️ Failed to get Store Name for RAG")
-                return None
-        except Exception as e:
-            logger.error(f"❌ Error configuring RAG: {e}")
-            return None
 
     def diagnose(self, request: DiagnosisRequest) -> DiagnosisResponse:
         """
@@ -99,8 +74,9 @@ class DiagnosisService:
             if not request.ticket_text.strip():
                 return DiagnosisResponse(
                     status="error",
-                    error="Texto vacío",
+                    error="Error: No se recibió texto",
                     diagnosis= "",
+                    type_id=14,
                     processing_time_ms=(time.time() - start_time) * 1000
                 )
 
@@ -119,21 +95,18 @@ class DiagnosisService:
                         })
                     except Exception as e:
                         logger.warning(f"Error decodificando imagen: {e}")
-                
-                
+        
+            
 
-            # 3. Get RAG tool config if enabled
-            tool_config = self._get_rag_tool_config() if request.use_rag else None
-
-            # 4. Call AI for diagnosis
+            # 3. Call AI for diagnosis
             logger.info("🤖 Generating diagnosis with AI...")
             response_data = self.agent_service.diagnose_ticket(
                 ticket_text=request.ticket_text,
-                tool_config=tool_config,
+                tool_config=None,
                 images=decoded_images
             )
 
-            # 5. Process response
+            # 4. Process response
             final_diagnosis_text = ""
             detected_blocks =[]
             type_id = 14 #Default: Requerimiento
@@ -189,6 +162,8 @@ class DiagnosisService:
             return DiagnosisResponse(
                 status="error",
                 error=str(e),
+                diagnosis="Error interno en el especialista multimodal",
+                type_id=14,
                 processing_time_ms=(time.time() - start_time) * 1000
             )
 
