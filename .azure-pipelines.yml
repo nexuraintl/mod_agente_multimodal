@@ -13,7 +13,7 @@ variables:
   GIT_USER: $(Build.RequestedFor)
   GIT_EMAIL: $(Build.RequestedForEmail)
   GITHUB_ORG: "nexuraintl"
-  GITHUB_REPO: "mod_agente_multimodal"
+  GITHUB_REPO: "ms_ia_multimodalagent"
   # Detectamos el nombre de la rama dinámicamente
   BRANCH_NAME: $(Build.SourceBranchName)
 
