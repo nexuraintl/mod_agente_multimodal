@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
+<<<<<<< HEAD
 google-genai
 python-dotenv
 google-adk
@@ -8,3 +9,5 @@ google-auth-httplib2
 google-auth-oauthlib
 httpx
 pytest
+=======
+

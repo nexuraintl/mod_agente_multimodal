@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import os
 from dotenv import load_dotenv
 
@@ -28,6 +29,19 @@ app.add_middleware(
 # Register the diagnosis router
 app.include_router(diagnosis_router)
 
+@app.get("/health")
+def health():
+    return {
+        "status": "UP"
+    }
+
+
+@app.get("/version")
+def version():
+    return {
+        "service": "ms_ia_multimodalagent",
+        "version": "1.0.0"
+    }
 
 if __name__ == "__main__":
     import uvicorn
@@ -35,3 +49,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)
     # cambio de puertopor pausa en el servicio
+
