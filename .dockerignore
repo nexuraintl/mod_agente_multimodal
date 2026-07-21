@@ -42,4 +42,18 @@ temp_*.txt
 
 # CI/CD
 .github/
-.azure-pipeline.yml
+.azure-pipelines.yml
+
+# ... (lo que ya tienes está bien, añade esto)
+
+# Imágenes locales (No queremos meter capturas de pantalla de prueba en el contenedor)
+*.png
+*.jpg
+debug_kb_files.py
+
+# Carpetas de entorno que Docker no necesita
+env_new/
+env_vars/
+
+# Sincronizadores
+sync_*.py

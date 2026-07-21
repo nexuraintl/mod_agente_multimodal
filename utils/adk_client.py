@@ -1,6 +1,9 @@
 from google import genai
 from google.genai import types
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ADKClient:
     def __init__(self):
@@ -144,26 +147,25 @@ La cantidad de items en 'items' corresponde a las columnas visuales. size.lg/md/
             # ----------------------------------------------------------------------
             
             # Configuración de herramientas
-            tools = []
-            if tool_config:
-                if isinstance(tool_config, list):
-                    tools.extend(tool_config)
-                else:
-                    tools.append(tool_config)
 
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.0-flash",
                 contents=contents,
                 config=types.GenerateContentConfig( 
-                    thinking_config=types.ThinkingConfig(thinking_budget=0),
-                    temperature=0.2,
-                    tools=tools
+                    # Eliminamos thinking_config si el presupuesto es 0 para evitar ruido
+                    temperature=0.1,
+                    tools=None, # Usamos la variable validada
+                    response_mime_type="application/json"
                 )
             )
-            print("🔍 Respuesta cruda:", response)
+            
+            if not response or not response.text:
+                logger.error("La respuesta de la IA está vacía")
+                return ""
+
             return response.text
                 
 
         except Exception as e:
-            print(f" Error en diagnose_ticket: {e}")
+            print(f" Error en Multimodal ADK: {e}")
             return ""

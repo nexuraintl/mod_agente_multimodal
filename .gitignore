@@ -1,0 +1,39 @@
+# --- Credenciales y Secretos ---
+.env
+permisos.json
+env_vars/
+env_new/
+*.pem
+*.key
+
+# --- Archivos de Imagen y Depuración (Locales) ---
+# Ignoramos imágenes de prueba para que no pesen en el repo
+*.png
+*.jpg
+*.jpeg
+!assets/  # (Opcional) Si tienes imágenes que SÍ deben ir, ponlas en una carpeta assets
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.pytest_cache/
+
+# --- Scripts de Sincronización y Debug ---
+debug_kb_files.py
+sync_drive_to_kb.py
+sync_incidents_to_kb.py
+
+# --- IDEs y OS ---
+.vscode/
+.idea/
+.DS_Store
+=======
+env/
+venv/
+__pycache__/
+*.pyc
+.idea/
+.vscode/
