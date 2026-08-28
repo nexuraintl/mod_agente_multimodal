@@ -11,6 +11,9 @@ class ADKClient:
         if not api_key:
             raise ValueError("La variable de entorno GOOGLE_API_KEY no está configurada.")
         self.client = genai.Client(api_key=api_key)
+        # gemini-2.0-flash fue retirado (shutdown); se migra a gemini-3.6-flash.
+        # Un solo punto de declaración para que no vuelva a quedar disperso.
+        self.model_id = "gemini-3.6-flash"
 
     def diagnose_ticket(self, ticket_text, tool_config=None, images=None):
         try:
@@ -149,7 +152,7 @@ La cantidad de items en 'items' corresponde a las columnas visuales. size.lg/md/
             # Configuración de herramientas
 
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=self.model_id,
                 contents=contents,
                 config=types.GenerateContentConfig( 
                     # Eliminamos thinking_config si el presupuesto es 0 para evitar ruido
@@ -166,6 +169,6 @@ La cantidad de items en 'items' corresponde a las columnas visuales. size.lg/md/
             return response.text
                 
 
-        except Exception as e:
-            print(f" Error en Multimodal ADK: {e}")
+        except Exception:
+            logger.exception("Error en Multimodal ADK")
             return ""

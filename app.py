@@ -1,5 +1,13 @@
 import os
+import logging
 from dotenv import load_dotenv
+
+# Sin basicConfig el root logger queda en WARNING y todo logger.info() del
+# servicio se descarta antes de llegar a Cloud Logging.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
 
 # Load environment variables from env_vars/.env
 load_dotenv("env_vars/.env")
